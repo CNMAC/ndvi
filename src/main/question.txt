@@ -1,0 +1,37 @@
+问题记录：
+
+一、通过gdal读取数据，编程实现在spark平台上计算NDVI并将结果导出为⼀张新的tif图：
+
+    1、使用maven配置的可能版本不对应出现异常，由于时间原因，直接导入使用jar：
+        <dependency>
+              <groupId>org.gdal</groupId>
+              <artifactId>gdal</artifactId>
+              <version>1.11.2</version>
+              <type>pom</type>
+        </dependency>
+        出现保错：no gdaljni in java.library.path
+        http://www.gisinternals.com/release.php
+        http://www.gisinternals.com/query.html?content=filelist&file=release-1911-x64-gdal-2-3-0-mapserver-7-0-7.zip
+        http://download.gisinternals.com/sdk/downloads/release-1911-x64-gdal-2-3-0-mapserver-7-0-7.zip
+        下载将dll文件和jar文件导入，真实环境需要配置这些到主节点和任务节点的环境变量中，使之生效
+
+    2、gdal读取文件怎么得到NIR、R的数据，如何生成tif文件等等一连串问题，单机进行计算太慢，如何转换成spark并行计算
+        GDAL处理后的数据一个float数组，通过spark parallelize生成数据集Rdd,进行ndvi计算。
+
+    3、读取成为一个数组数据后，如何使用spark进行分布式计算？
+        使用将数据转换成rdd,进行分布式计算，这种处理方式driver的内存压力比较大，但也能从分布式计算获益，
+        还需要时间考虑是否能找到更好的办法，如是否可以有mllib包可用于该计算需要花时间学习研究一下。
+    4、本地运行内存不足失败：
+        打jar包通过spark-submit提交任务，给充足资源给driver
+
+二、使用geotrellis框架实现本地
+    1、https://github.com/geotrellis/geotrellis-landsat-tutorial拉取代码
+        解压，由于我使用window系：
+            打开 ./data/landsat/download-data.sh 找到下载链接直接下载下来
+
+        build.sbt查看依赖，添加到maven依赖中：
+    2、运行报错：Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
+        运行配置vm option:
+                -Xms128m -Xmx4096m -XX:MaxPermSize=512m
+    3、
+
